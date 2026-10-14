@@ -50,7 +50,7 @@ Optimized review build: `~/XcodeProjects/medit-/build/review-next/`.
   check. Covers real block-editing input, encoding/save failures, external
   changes, recovery failures/crashes, workspace/tree restoration, pinning,
   replace undo and read-only Git scanning.
-- Miller: optimized review build succeeds; all 125 self-tests pass, including
+- Miller: optimized review build succeeds; all 130 self-tests pass, including
   tab-width/spaces/color and spelling checks.
 - Each app's own interface capture was inspected. Native decorations, dialogs,
   scrollbar styles and font rendering still reflect the operating system.
@@ -86,6 +86,8 @@ Personal dictionary learning remains a future explicit Add to Dictionary action.
 
 Welcome follow-up: pinned on startup; unpinning or disabling Show Welcome on startup dismisses it and suppresses session restoration. Unsaved Welcome edits are archived. Added dedicated Fedora checks and five Mac checks. Both supplied Welcome examples now begin with “A familiar place to write, designed to be pleasant to use.” Unchanged personal copies migrate; edited copies stay intact.
 
-Tab Rename: named files move within their current folder without saving pending edits; untitled documents save as UTF-8 in the sidebar root, or use Save As when no folder is open. Existing paths and open destination tabs are refused. Other open windows, stored session/closed-tab references, recent files and sidebar Git state follow the rename. Fedora rename and cross-window checks pass; the Mac review build passes 125 checks.
+Tab Rename: named files move within their current folder without saving pending edits; untitled documents save as UTF-8 in the sidebar root, or use Save As when no folder is open. Existing paths and open destination tabs are refused. Other open windows, stored session/closed-tab references, recent files and sidebar Git state follow the rename. Fedora rename and cross-window checks pass; the Mac review build passes 130 checks.
 
 Bash colors now follow Xcode Default (Light), read from the installed Xcode theme on Miller: comments #5d6c79, keywords #9b2393, strings #c41a16, numbers #1c00cf, variables #326d74, command substitutions #6c36a9. Fonts and non-Bash highlighting remain unchanged. Qt checks verify token colors, plain-text preservation and disabling syntax.
+
+Sidebar file menu: Rename handles closed and open files; Delete confirms and moves the file to Trash. Open copies retain their text as unsaved documents, and stored recovery references detach from the deleted path. Cancel and Trash failure preserve the file. Folder actions are excluded. New checks use isolated fixtures rather than the user’s Trash.

@@ -10,7 +10,7 @@ import re
 import tempfile
 import uuid
 
-from PyQt6.QtCore import QLockFile, QPoint, QRectF, QStandardPaths, Qt, QTimer
+from PyQt6.QtCore import QLockFile, QPoint, QRectF, QStandardPaths, Qt, QTimer, QFile
 from PyQt6.QtGui import QColor, QFont, QFontDatabase, QIcon, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import (
     QApplication, QCheckBox, QColorDialog, QComboBox, QDialog, QDialogButtonBox,
@@ -608,6 +608,10 @@ class AppWindow(Window):
         old_model = self.model
         self.model = GitModel(self)
         self.tree.setModel(self.model)
+        self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self.sidebar_menu)
+        self.sidebar_title.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.sidebar_title.customContextMenuRequested.connect(self.folder_title_menu)
         self.model.directoryLoaded.connect(self.restore_sidebar)
         self.tree.expanded.connect(self.schedule_recovery)
         self.tree.collapsed.connect(self.schedule_recovery)
@@ -701,7 +705,7 @@ class AppWindow(Window):
             self.report("Could not update recent items", error)
 
     def toggle_sidebar(self):
-        super().toggle_sidebar()
+        self.sidebar.setVisible(self.sidebar.isHidden())
         self.schedule_recovery()
         self.refresh()
 
@@ -941,6 +945,8 @@ class AppWindow(Window):
                 self.sidebar_title.setToolTip(str(self.workspace))
             else:
                 self.sidebar_title.setText("Files")
+                self.sidebar_title.setToolTip("")
+            self.tree.setVisible(self.workspace is not None)
             self.sidebar.setVisible(record.get("sidebar", bool(self.workspace)))
             self.splitter.setSizes(record.get("splitter", [240, 820]))
             self.recent = self.store.recent() or [Path(path) for path in record.get("recent", [])]
@@ -971,6 +977,20 @@ class AppWindow(Window):
         except (OSError, ValueError) as error:
             self.report("Could not open workspace", error)
 
+    def make_folder_title_menu(self):
+        if self.workspace is None:
+            return None
+        menu = QMenu(self)
+        action = menu.addAction("Close Folder")
+        action.triggered.connect(self.close_folder)
+        return menu
+
+    def folder_title_menu(self, point):
+        menu = self.make_folder_title_menu()
+        if menu is not None:
+            menu.exec(self.sidebar_title.mapToGlobal(point))
+            menu.deleteLater()
+
     def close_folder(self):
         if self.workspace is None:
             return
@@ -979,7 +999,8 @@ class AppWindow(Window):
             return
         try:
             record = self.store.load(self.store.folder_path(self.identity, None))
-            self.apply_session(record or dict(version=1, documents=[], active=0, sidebar=False))
+            self.apply_session(record or dict(version=1, documents=[], active=0, sidebar=True))
+            self.sidebar.show()
             self.apply_options()
             self.persist()
         except (OSError, ValueError) as error:
@@ -1146,6 +1167,87 @@ class AppWindow(Window):
         menu.addAction("Tab Color…", lambda: self.choose_tab_color(index))
         menu.addAction("Use Default Color", lambda: self.reset_tab_color(index))
         menu.exec(self.tabs.tabBar().mapToGlobal(point))
+
+    def sidebar_menu(self, point):
+        index = self.tree.indexAt(point)
+        if not index.isValid() or self.model.isDir(index):
+            return
+        path = Path(self.model.filePath(index))
+        self.tree.setCurrentIndex(index.siblingAtColumn(0))
+        menu = QMenu(self)
+        menu.addAction("Rename…", lambda: self.rename_sidebar_file(path))
+        menu.addAction("Delete…", lambda: self.delete_sidebar_file(path))
+        menu.exec(self.tree.viewport().mapToGlobal(point))
+
+    def rename_sidebar_file(self, path, name=None):
+        if name is None:
+            name, accepted = QInputDialog.getText(self, "Rename File", "File name:", text=path.name)
+            if not accepted:
+                return False
+        # A closed file can be renamed without opening or decoding its contents.
+        from types import SimpleNamespace
+        return self.rename_document(SimpleNamespace(path=path), name)
+
+    def delete_sidebar_file(self, path, confirm=None, trash=None):
+        if path.is_dir():
+            return False
+        if confirm is None:
+            answer = QMessageBox.question(self, "Delete File?", f"Are you sure you want to move ‘{path.name}’ to Trash?\n\nOpen copies will be kept as unsaved documents.", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+            confirm = answer == QMessageBox.StandardButton.Yes
+        if not confirm:
+            return False
+        moved = False
+        try:
+            peers = [window for window in self.windows if isinstance(window, AppWindow) and window.store is self.store]
+            for window in peers:
+                if not window.persist():
+                    raise OSError("Could not preserve recovery before deleting.")
+                for index in range(window.tabs.count()):
+                    document = window.tabs.widget(index)
+                    if document.path == path:
+                        self.store.archive(window.document_record(document))
+            success, _ = (trash or QFile.moveToTrash)(str(path))
+            if not success:
+                raise OSError("Could not move the file to Trash. The file has been kept.")
+            moved = True
+            for window in peers:
+                for index in range(window.tabs.count()):
+                    document = window.tabs.widget(index)
+                    if document.path == path:
+                        document.path = None
+                        document.disk_bytes = None
+                        document.setModified(True)
+                window.refresh()
+                window.model.scan()
+            for window in peers:
+                if not window.persist():
+                    raise OSError("File moved to Trash, but recovery needs attention. Keep this window open.")
+            self.detach_deleted_recovery(path)
+            recent = [value for value in self.store.recent() if value != path]
+            atomic_json(self.store.root / "recent.json", [str(value) for value in recent])
+            for window in peers:
+                window.recent = recent
+            return True
+        except (OSError, ValueError) as error:
+            self.report("File deleted; recovery needs attention" if moved else "Could not delete file", error)
+            return False
+
+    def detach_deleted_recovery(self, deleted):
+        for path in self.store.root.rglob("*.json"):
+            if ".corrupt-" in path.name:
+                continue
+            try:
+                record = json.loads(path.read_text())
+            except (OSError, ValueError):
+                continue
+            documents = record.get("documents", [record]) if isinstance(record, dict) else []
+            changed = False
+            for document in documents:
+                if isinstance(document, dict) and document.get("path") == str(deleted):
+                    document.update(path=None, modified=True, disk=None)
+                    changed = True
+            if changed:
+                atomic_json(path, record)
 
     def rename_tab(self, editor):
         if editor.path is None and self.workspace is None:

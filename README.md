@@ -61,6 +61,8 @@ Copy, Cut and Paste are also available from the context menu. Without a rectangl
 
 Use **Open → Workspace** to choose a folder. Expand folders with their disclosure arrows and double-click a file to open it. The toolbar sidebar button, **F9**, and the sidebar × control show or hide the browser without closing documents. Resize it using the divider.
 
+Right-click a sidebar file for **Rename…** or **Delete…**. Rename keeps unsaved edits and updates the tab and recovery references. Delete asks for confirmation before moving the file to Trash; open copies become unsaved documents so their text remains recoverable. Cancelling or a Trash failure leaves the file intact. These commands apply to files, not folders.
+
 Folder sessions remember tabs, order, pins, colors, tab settings, active document, cursor/selection, scrolling and sidebar state. Switching folders preserves the outgoing session; **Close Folder** returns to documents opened without a folder. Each window has independent recovery. Session files are kept in application data, not in the folder being edited. Directory symlinks are not expanded recursively.
 
 Git badges occupy a persistent column at the far right: **M** modified, **A** added, **D** deleted, **R** renamed, **C** copied, **T** type changed, **?** untracked and **!** conflict. Folder badges summarize changes beneath them. Preferences → Editing → Show Git status in sidebar controls visibility and scanning. Git status describes files on disk and never stages, commits or writes the index.
@@ -93,6 +95,8 @@ QT_QPA_PLATFORM=offscreen .venv/bin/python check_enhancements.py
 QT_QPA_PLATFORM=offscreen .venv/bin/python check_launch.py
 QT_QPA_PLATFORM=offscreen .venv/bin/python check_welcome.py
 QT_QPA_PLATFORM=offscreen .venv/bin/python check_rename.py
+QT_QPA_PLATFORM=offscreen .venv/bin/python check_sidebar_actions.py
+QT_QPA_PLATFORM=offscreen .venv/bin/python check_sidebar_folder.py
 ```
 
 Checks cover actual Alt-drag selection, column copy/cut/paste and undo, short-row padding, saving, recovery failures, folder sessions, Git status, preferences, later launches and Welcome behavior. Complex Unicode column geometry still benefits from hands-on testing.
@@ -112,3 +116,5 @@ Related projects: [medit- for macOS](https://github.com/greenfinch628/medit-) an
 ## Binary packages
 
 The current Qt editor runs from source on Fedora. RPM and Ubuntu DEB packages have not yet been produced or validated for this implementation. Legacy packages do not contain this editor; Ubuntu compatibility still requires a packaged build and testing.
+
+Right-click the sidebar folder title and choose **Close Folder** to leave the sidebar visible and empty. The Open menu uses the same action. Folder sessions and unsaved drafts remain available when the folder is reopened.
