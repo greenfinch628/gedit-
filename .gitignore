@@ -1,3 +1,11 @@
+# Generated output
+/build/
+/dist/
+__pycache__/
+*.pyc
+
 # macOS metadata
 .DS_Store
 ._.DS_Store
+
+/.venv/
