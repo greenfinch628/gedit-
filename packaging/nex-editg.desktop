@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=nex-editg
+Comment=Text editor with workspace sessions and recovery
+Exec=nex-editg %F
+Icon=com.greenfinch628.nex-editg
+Terminal=false
+Categories=Utility;TextEditor;Development;
+StartupWMClass=gedit-qt-prototype

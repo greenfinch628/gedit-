@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+export PYTHONPATH=/opt/nex-editg/lib
+if [ -n "${DISPLAY:-}" ]; then
+    : "${QT_QPA_PLATFORM:=xcb}"
+    export QT_QPA_PLATFORM
+fi
+exec /usr/bin/python3 /opt/nex-editg/editor.py "$@"

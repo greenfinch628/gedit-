@@ -118,6 +118,6 @@ Related projects: [nex-editm for macOS](https://github.com/greenfinch628/nex-edi
 
 ## Binary packages
 
-The current Qt editor runs from source on Fedora. RPM and Ubuntu DEB packages have not yet been produced or validated for this implementation. Legacy packages do not contain this editor; Ubuntu compatibility still requires a packaged build and testing.
+RPM packages for Fedora 44 and DEB packages for Ubuntu 26.04 are in `packages/`. See [packaging instructions](packaging/README.md). Version: 0.1.0.
 
 Right-click the sidebar folder title and choose **Close Folder** to leave the sidebar visible and empty. The Open menu uses the same action. Folder sessions and unsaved drafts remain available when the folder is reopened.
