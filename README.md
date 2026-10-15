@@ -6,6 +6,19 @@ A simple text editor inspired by GNOME gedit that is pleasant to use.
 
 Built for Fedora with Qt 6 Widgets and QScintilla, nex-editg follows the layout and editing behavior of [nex-editm](https://github.com/greenfinch628/nex-editm) on macOS. The aim is a familiar experience when switching computers, with native window controls, file dialogs and platform shortcuts. This is an independent development project, not an official GNOME or gedit release.
 
+## Project status and support
+
+nex-editg is provided **as is, without warranty**. **No technical support is
+provided.** There is no commitment to ongoing maintenance, updates, or
+compatibility with future operating system or dependency versions.
+
+Bug reports, enhancement requests, and proposed fixes or improvements are
+welcome through this project's [GitHub repository](https://github.com/greenfinch628/nex-editg)
+or [Gitea repository](http://scopuli:3000/scopuli/nex-editg) and will be considered
+at the maintainer's discretion. Submitting a report, request, or contribution
+does not guarantee a response, investigation, acceptance, fix, or implementation.
+No release or completion date is promised.
+
 ## Features
 
 - Open files and folders, browse recent items, and work in multiple windows.
