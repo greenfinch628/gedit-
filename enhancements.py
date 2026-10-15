@@ -471,7 +471,7 @@ class ColorTabs(Tabs):
 class Preferences(QDialog):
     def __init__(self, owner):
         super().__init__(owner)
-        self.setWindowTitle("gedit- Preferences")
+        self.setWindowTitle("nex-editg Preferences")
         self.resize(540, 400)
         self.values = dict(owner.options)
         layout = QVBoxLayout(self)
@@ -603,7 +603,7 @@ class AppWindow(Window):
         self.loading = True
         self.recovery_error = None
         super().__init__()
-        self.setWindowTitle("gedit-")
+        self.setWindowTitle("nex-editg")
         from git_browser import GitModel
         old_model = self.model
         self.model = GitModel(self)
@@ -877,11 +877,11 @@ class AppWindow(Window):
             self.store.save(self.store.folder_path(self.identity, self.workspace), record)
             self.store.save(self.store.window_path(self.identity), record)
             self.recovery_error = None
-            self.setWindowTitle("gedit-")
+            self.setWindowTitle("nex-editg")
             return True
         except (OSError, ValueError, TypeError) as error:
             self.recovery_error = str(error)
-            self.setWindowTitle("gedit- — Recovery needs attention")
+            self.setWindowTitle("nex-editg — Recovery needs attention")
             return False
 
     def restore_editor(self, record):
@@ -1453,10 +1453,10 @@ class AppWindow(Window):
             self.toggle_pin(editor, editor.pin_button)
 
     def help(self):
-        QMessageBox.information(self, "gedit- Editing", "Alt-drag selects columns. Ctrl+Shift+T restores a closed-tab recovery copy.\n\nBottom controls select language, tab width, spaces and spelling. Right-click a tab for its color.\n\nUnsaved text is kept in independent recovery storage. Closing never writes edits to original files unless you choose Save.")
+        QMessageBox.information(self, "nex-editg Editing", "Alt-drag selects columns. Ctrl+Shift+T restores a closed-tab recovery copy.\n\nBottom controls select language, tab width, spaces and spelling. Right-click a tab for its color.\n\nUnsaved text is kept in independent recovery storage. Closing never writes edits to original files unless you choose Save.")
 
     def about(self):
-        QMessageBox.information(self, "About gedit-", "gedit-\nQt 6 Widgets + QScintilla\nIndependent settings, workspace sessions and recovery.\n" + str(self.store.root))
+        QMessageBox.information(self, "About nex-editg", "nex-editg\nQt 6 Widgets + QScintilla\nIndependent settings, workspace sessions and recovery.\n" + str(self.store.root))
 
 
 def launch(app, transient=False, root_override=None, paths=()):
@@ -1480,7 +1480,7 @@ def launch(app, transient=False, root_override=None, paths=()):
                 socket.waitForBytesWritten(1000)
                 socket.disconnectFromServer()
                 return [], None
-            QMessageBox.information(None, "gedit- is already running", "Use the existing gedit- window. New Window opens another window with separate recovery.")
+            QMessageBox.information(None, "nex-editg is already running", "Use the existing nex-editg window. New Window opens another window with separate recovery.")
             return [], None
         records = []
         if not transient:

@@ -1,10 +1,10 @@
-# gedit-
+# nex-editg
 
-![gedit- on Fedora showing a colored Welcome tab, folder sidebar and Git status](assets/screenshots/gedit-fedora.png)
+![nex-editg on Fedora showing the Welcome script, tabs, folder sidebar and Git status](assets/screenshots/nex-editg-fedora.png)
 
 A simple text editor inspired by GNOME gedit that is pleasant to use.
 
-Built for Fedora with Qt 6 Widgets and QScintilla, gedit- follows the layout and editing behavior of [medit-](https://github.com/greenfinch628/medit-) on macOS. The aim is a familiar experience when switching computers, with native window controls, file dialogs and platform shortcuts. This is an independent development project, not an official GNOME or gedit release.
+Built for Fedora with Qt 6 Widgets and QScintilla, nex-editg follows the layout and editing behavior of [nex-editm](https://github.com/greenfinch628/nex-editm) on macOS. The aim is a familiar experience when switching computers, with native window controls, file dialogs and platform shortcuts. This is an independent development project, not an official GNOME or gedit release.
 
 ## Features
 
@@ -25,24 +25,27 @@ Built for Fedora with Qt 6 Widgets and QScintilla, gedit- follows the layout and
 
 ## Build and try
 
-Choose **gedit-** in the application menu on Scopuli, or run from the source directory:
+Choose **nex-editg** in the application menu on Scopuli, or run from the existing source directory:
 
 ```sh
+cd ~/Applications/nex-editg
 ./run-prototype
 ```
 
-The historical launcher filename is retained. Pass files or folders as arguments; later launches forward them to the running editor. Use **Open → New Window** for another window.
+The launcher is still named `run-prototype`; renaming the application does not change this command. Pass files or folders as arguments; later launches forward them to the running editor. Use **Open → New Window** for another window.
 
-For a fresh checkout, install Python, the Qt runtime dependencies for your desktop, and Enchant with an English dictionary. Fedora uses `enchant2` and `hunspell-en-US`. Then:
+For a fresh checkout, install Python, the Qt runtime dependencies for your desktop, and Enchant with an English dictionary. Fedora uses `enchant2` and `hunspell-en-US`. Clone the renamed repository, then set up and run it:
 
 ```sh
+git clone https://github.com/greenfinch628/nex-editg.git
+cd nex-editg
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python install-launcher.py
 ./run-prototype
 ```
 
-The installer adds a separate per-user gedit- launcher and icon. It does not replace the legacy gedit installation, launcher, preferences or recovery data, and it does not change file associations.
+The installer adds a separate per-user nex-editg launcher and icon. It does not replace the legacy gedit installation, launcher, preferences or recovery data, and it does not change file associations.
 
 ## Rectangular selection and column copy/cut/paste
 
@@ -83,7 +86,7 @@ By default, closing or quitting preserves unsaved text without asking to save. E
 
 Recovery runs after a 250 ms debounce and before closing or switching folders. Writes use private permissions, atomic replacement, fsync and previous snapshots. Failed recovery prevents closure. The final fraction of a second before abrupt power loss may precede a snapshot. Clean saved tabs reload disk contents; recovered edits remain unsaved, and saving warns if the original changed externally.
 
-Settings, recovery and closed-tab copies are local, unencrypted text under `~/.local/share/Greenfinch628/gedit-qt-prototype/`. The development identity is retained for continuity. Recovery does not save changes to original documents, and archives are not automatically deleted.
+Settings, recovery and closed-tab copies are local, unencrypted text under `~/.local/share/Greenfinch628/gedit-qt-prototype/`. This internal data-directory name is retained for continuity after the rename to nex-editg; existing preferences and recovery remain available. Recovery does not save changes to original documents, and archives are not automatically deleted.
 
 UTF-8, UTF-16/32 BOMs, plausible unmarked UTF-16 and Windows-1252 are supported. Existing encoding, BOM and newline contents are retained; Save As uses UTF-8. Ambiguous encoding detection can differ from macOS. Binary files are not supported.
 
@@ -109,9 +112,9 @@ This is an independent Qt implementation, rather than a patch to upstream gedit.
 
 ## Repositories
 
-Source: [GitHub](https://github.com/greenfinch628/gedit-) and [Scopuli Gitea](http://scopuli:3000/scopuli/gedit-).
+Source: [GitHub](https://github.com/greenfinch628/nex-editg) and [Scopuli Gitea](http://scopuli:3000/scopuli/nex-editg).
 
-Related projects: [medit- for macOS](https://github.com/greenfinch628/medit-) and [gedit-legacy](https://github.com/greenfinch628/gedit-legacy). The legacy application remains separate and preserved.
+Related projects: [nex-editm for macOS](https://github.com/greenfinch628/nex-editm) and [gedit-legacy](https://github.com/greenfinch628/gedit-legacy). The legacy application remains separate and preserved.
 
 ## Binary packages
 

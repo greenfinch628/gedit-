@@ -7,7 +7,7 @@ entry = Path.home() / ".local/share/applications/com.greenfinch628.gedit.qtproto
 entry.parent.mkdir(parents=True, exist_ok=True)
 content = f'''[Desktop Entry]
 Type=Application
-Name=gedit-
+Name=nex-editg
 Comment=Independent text editor with workspace sessions and recovery
 Exec="{project / 'run-prototype'}" %F
 Icon={project / 'icons/app-ned.svg'}

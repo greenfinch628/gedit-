@@ -224,7 +224,7 @@ class Window(QMainWindow):
     def __init__(self):
         super().__init__()
         self.windows.append(self)
-        self.setWindowTitle("gedit- — Prototype")
+        self.setWindowTitle("nex-editg")
         self.resize(1060, 720)
         self.setMinimumSize(640, 400)
         self.workspace: Path | None = None
@@ -283,7 +283,7 @@ class Window(QMainWindow):
         app_menu = QMenu(self)
         app_menu.addAction(self.action("Preferences…", self.preferences, "Ctrl+,"))
         app_menu.addAction(self.action("Help", self.help))
-        app_menu.addAction(self.action("About gedit-", self.about))
+        app_menu.addAction(self.action("About nex-editg", self.about))
         app.setMenu(app_menu)
         app.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         row.addWidget(app)
@@ -640,7 +640,7 @@ class Window(QMainWindow):
         QMessageBox.information(self, "Editing", "Hold Alt and drag to select a rectangle. Type, copy, cut or paste in the selection; Escape exits block mode.\n\nCtrl+N/O/S/W: New/Open/Save/Close. Ctrl+F: Find. F9: Sidebar.\n\nThis prototype has no automatic recovery yet. Save documents before leaving them.")
 
     def about(self):
-        QMessageBox.information(self, "About gedit-", "gedit- interface prototype\nQt 6 Widgets + QScintilla\nIndependent from the legacy gedit installation.\n\nWorkspace sessions and recovery await interface review.")
+        QMessageBox.information(self, "About nex-editg", "nex-editg interface prototype\nQt 6 Widgets + QScintilla\nIndependent from the legacy gedit installation.\n\nWorkspace sessions and recovery await interface review.")
 
     def report(self, title, error):
         QMessageBox.critical(self, title, str(error))
@@ -656,6 +656,7 @@ def main():
     app = QApplication([sys.argv[0]])
     app.setOrganizationName("Greenfinch628")
     app.setApplicationName("gedit-qt-prototype")
+    app.setApplicationDisplayName("nex-editg")
     app.setDesktopFileName("com.greenfinch628.gedit.qtprototype")
     font = QFont("Cantarell")
     font.setPixelSize(17)
