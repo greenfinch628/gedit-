@@ -374,7 +374,9 @@ class EnhancedEditor(Editor):
             return
         self.check_spelling()
         point = event.position().toPoint()
-        position = self.SendScintilla(self.SCI_POSITIONFROMPOINTCLOSE, point.x(), point.y())
+        # Hit-test the character under the pointer, not the nearest caret
+        # boundary (which can belong to a word the pointer is outside).
+        position = self.SendScintilla(self.SCI_CHARPOSITIONFROMPOINTCLOSE, point.x(), point.y())
         record = next((value for value in self.misspellings if value[0] <= position < value[1]), None)
         if record:
             menu = self.correction_menu(record)
