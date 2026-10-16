@@ -20,65 +20,136 @@ from PyQt6.QtWidgets import (
 from PyQt6.Qsci import QsciLexerBash, QsciLexerMarkdown
 from editor import Editor, Tabs, Window, STYLE
 
-# Each column is one hue; each row offers a progressively stronger tint.
-TAB_COLOR_HUES = ("#606060", "#db5267", "#e8913d", "#d5b83f",
-                 "#6d9d4f", "#459d9b", "#567ec5", "#9870b6")
-TAB_COLOR_TINTS = (0.12, 0.25, 0.40, 0.55, 0.70, 0.85)
+# GTK's standard chooser palette, arranged in the same columns as Ptyxis-tc.
+# Preserve the original five rows and prepend a softer tint of the top row.
+TAB_COLOR_ROWS = (
+    ("#99c1f1", "#8ff0a4", "#f9f06b", "#ffbe6f", "#f66151", "#dc8add", "#cdab8f", "#ffffff", "#77767b"),
+    ("#62a0ea", "#57e389", "#f8e45c", "#ffa348", "#ed333b", "#c061cb", "#b5835a", "#f6f5f4", "#5e5c64"),
+    ("#3584e4", "#33d17a", "#f6d32d", "#ff7800", "#e01b24", "#9141ac", "#986a44", "#deddda", "#3d3846"),
+    ("#1c71d8", "#2ec27e", "#f5c211", "#e66100", "#c01c28", "#813d9c", "#865e3c", "#c0bfbc", "#241f31"),
+    ("#1a5fb4", "#26a269", "#e5a50a", "#c64600", "#a51d2d", "#613583", "#63452c", "#9a9996", "#000000"),
+)
 
 def tab_color_palette():
-    return [[QColor(*(round(255 + (channel - 255) * tint)
-                      for channel in QColor(hue).getRgb()[:3])).name()
-             for hue in TAB_COLOR_HUES] for tint in TAB_COLOR_TINTS]
+    lighter = [QColor(*(round(channel + (255 - channel) * 0.5)
+                       for channel in QColor(value).getRgb()[:3])).name()
+               for value in TAB_COLOR_ROWS[0]]
+    return [lighter, *[list(row) for row in TAB_COLOR_ROWS]]
 
 class TabColorDialog(QDialog):
     def __init__(self, initial, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Choose Tab Color")
+        self.setWindowTitle("Tab Background Color")
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.setObjectName("tabColorChooser")
+        self.setStyleSheet("""
+            QDialog#tabColorChooser { background: #e8e8e8; border: 1px solid #38383c; border-radius: 14px; }
+            QDialog#tabColorChooser QLabel { color: #202020; background: transparent; border: none; font-size: 18px; }
+            QDialog#tabColorChooser QPushButton { padding: 0; margin: 0; }
+            QPushButton#chooserCancel, QPushButton#chooserSelect {
+                color: white; background: #38383c; border: none; border-radius: 9px;
+                font-size: 18px; font-weight: bold;
+            }
+            QPushButton#chooserSelect { background: #3584e4; }
+            QPushButton#chooserCancel:hover { background: #48484c; }
+            QPushButton#chooserSelect:hover { background: #4992e8; }
+        """)
         self.selected_color = QColor(initial)
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 8, 10, 10)
         layout.setSpacing(12)
-        layout.addWidget(QLabel("Choose a shade"))
+        header = QHBoxLayout()
+        header.setSpacing(8)
+        cancel = QPushButton("Cancel")
+        cancel.setObjectName("chooserCancel")
+        cancel.setFixedSize(96, 34)
+        cancel.clicked.connect(self.reject)
+        header.addWidget(cancel)
+        title = QLabel("Tab Background Color")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("font-weight: bold;")
+        header.addWidget(title, 1)
+        select = QPushButton("Select")
+        select.setObjectName("chooserSelect")
+        select.setFixedSize(96, 34)
+        select.setDefault(True)
+        select.clicked.connect(self.accept)
+        header.addWidget(select)
+        layout.addLayout(header)
         grid = QGridLayout()
-        grid.setSpacing(6)
+        grid.setHorizontalSpacing(4)
+        grid.setVerticalSpacing(2)
         self.swatches = []
-        for row, colors in enumerate(tab_color_palette()):
+        palette = tab_color_palette()
+        for row, colors in enumerate(palette):
             for column, value in enumerate(colors):
-                button = QPushButton()
-                button.setFixedSize(32, 28)
-                button.setCheckable(True)
-                button.setToolTip(value)
-                button.setAccessibleName("Choose color " + value)
-                button.setProperty("swatchColor", value)
-                button.clicked.connect(lambda checked=False, color=value: self.select_color(QColor(color)))
+                button = self.make_swatch(value)
+                button.setProperty("roundedTop", row == 0)
+                button.setProperty("roundedBottom", row == len(palette) - 1)
                 grid.addWidget(button, row, column)
-                self.swatches.append(button)
         layout.addLayout(grid)
-        self.preview = QLabel()
-        self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.preview.setMinimumHeight(30)
-        layout.addWidget(self.preview)
-        custom = QPushButton("Custom color…")
+        layout.addWidget(QLabel("Custom"))
+        custom_row = QHBoxLayout()
+        custom_row.setSpacing(4)
+        custom = QPushButton("+")
+        custom.setAccessibleName("Add custom color")
+        custom.setFixedSize(48, 34)
+        custom.setStyleSheet("QPushButton { background: #38383c; color: white; border: none; border-top-left-radius: 10px; border-bottom-left-radius: 10px; font-size: 28px; }")
         custom.clicked.connect(self.custom_color)
-        layout.addWidget(custom)
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
-        layout.addWidget(buttons)
+        custom_row.addWidget(custom)
+        self.custom_swatches = []
+        for value in ("#141414", "#f6f5f4", "#e5e5e5", "#c0c0c0"):
+            button = self.make_swatch(value)
+            self.custom_swatches.append(button)
+            custom_row.addWidget(button)
+        self.custom_swatches[-1].setProperty("roundedRight", True)
+        custom_row.addStretch()
+        layout.addLayout(custom_row)
         self.select_color(initial)
         self.setFixedSize(self.sizeHint())
+
+    def make_swatch(self, value):
+        button = QPushButton()
+        button.setFixedSize(48, 32)
+        button.setCheckable(True)
+        button.setAutoDefault(False)
+        button.setToolTip(value)
+        button.setAccessibleName("Choose color " + value)
+        button.setProperty("swatchColor", value)
+        button.clicked.connect(lambda checked=False, b=button: self.select_color(QColor(b.property("swatchColor"))))
+        self.swatches.append(button)
+        return button
 
     def select_color(self, color):
         self.selected_color = QColor(color)
         value = self.selected_color.name()
-        foreground = "#202020" if self.selected_color.lightness() > 115 else "#ffffff"
-        self.preview.setText(value)
-        self.preview.setStyleSheet(f"background: {value}; color: {foreground}; border: 1px solid #999; border-radius: 3px;")
+        # An arbitrary existing color remains visible and selectable in Custom.
+        if value not in [b.property("swatchColor") for b in self.swatches]:
+            self.custom_swatches[0].setProperty("swatchColor", value)
+            self.custom_swatches[0].setToolTip(value)
+            self.custom_swatches[0].setAccessibleName("Choose color " + value)
+        selected_once = False
         for button in self.swatches:
             swatch = button.property("swatchColor")
-            selected = swatch == value
+            selected = swatch == value and not selected_once
+            selected_once |= selected
             button.setChecked(selected)
-            edge = "2px solid #204a87" if selected else "1px solid #aaa"
-            button.setStyleSheet(f"QPushButton {{ background: {swatch}; border: {edge}; border-radius: 3px; }} QPushButton:focus {{ border: 2px solid #204a87; }}")
+            button.setText("✓" if selected else "")
+            ink = "#202020" if QColor(swatch).lightness() > 150 else "#ffffff"
+            corners = "border-radius: 0;"
+            if button.property("roundedTop"):
+                corners += "border-top-left-radius: 10px; border-top-right-radius: 10px;"
+            if button.property("roundedBottom"):
+                corners += "border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;"
+            if button.property("roundedRight"):
+                corners += "border-top-right-radius: 10px; border-bottom-right-radius: 10px;"
+            button.setStyleSheet(f"QPushButton {{ background: {swatch}; color: {ink}; border: none; {corners} font-size: 20px; }} QPushButton:focus {{ border: 2px solid {ink}; }}")
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton and event.position().y() < 48:
+            if self.windowHandle():
+                self.windowHandle().startSystemMove()
+        super().mousePressEvent(event)
 
     def custom_color(self):
         color = QColorDialog.getColor(self.selected_color, self, "Custom Tab Color",
