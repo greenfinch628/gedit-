@@ -1,6 +1,6 @@
 # Linux packages
 
-Version 0.1.0 is the initial packaged baseline. Build RPMs on Fedora 44 x86_64
+Version 0.1.1 includes the updated tab color chooser and spelling click behavior. Build RPMs on Fedora 44 x86_64
 and DEBs on Ubuntu 26.04 amd64, using Python 3.14 and pip:
 
     python3 packaging/build.py rpm
