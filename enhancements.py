@@ -373,11 +373,9 @@ class EnhancedEditor(Editor):
         if (origin - event.position().toPoint()).manhattanLength() > 3:
             return
         self.check_spelling()
-        point = event.position().toPoint()
-        # Hit-test the character under the pointer, not the nearest caret
-        # boundary (which can belong to a word the pointer is outside).
-        position = self.SendScintilla(self.SCI_CHARPOSITIONFROMPOINTCLOSE, point.x(), point.y())
-        record = next((value for value in self.misspellings if value[0] <= position < value[1]), None)
+        # Normal mouse handling has placed the caret; both positions use UTF-8 bytes.
+        position = self.SendScintilla(self.SCI_GETCURRENTPOS)
+        record = next((value for value in self.misspellings if value[0] < position < value[1]), None)
         if record:
             menu = self.correction_menu(record)
             self.spell_menu = menu

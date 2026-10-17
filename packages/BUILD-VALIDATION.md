@@ -1,3 +1,27 @@
+# Package validation — 2026-10-17
+
+Version 0.1.2, package revision 1, uses the cursor insertion position strictly
+inside misspelled-word boundaries. The spelling dictionary, underlining,
+suggestions and replacement code are unchanged.
+
+Fedora 44 x86_64: RPM built natively and digest verification passed. The staged
+application passed all 185 mouse-click checks and the existing editor and
+enhancement regression suites. The same spelling refinement was interactively
+accepted on Scopuli and passed all 185 checks against installed review copies
+on Scopuli, Rocinante, Karakum and Narlikar before the 0.1.2 version bump.
+The older Scopuli desktop shortcut was corrected to use /usr/bin/nex-editg.
+
+Ubuntu 26.04 amd64: DEB built in an Ubuntu container and installed through apt.
+The spelling-click, editor, enhancement and single-instance startup suites
+passed with installed package libraries. Installed enhancements.py was checked
+byte-for-byte against the tested source and installed VERSION is 0.1.2.
+
+Packages are unsigned local builds. RPM, DEB and source archive have distinct
+0.1.2 filenames; earlier artifacts are retained. SHA256SUMS covers all releases.
+Work assisted by OpenAI Codex. Offscreen checks do not replace desktop testing.
+
+---
+
 # Package validation — 2026-10-16
 
 Version 0.1.1, package revision 1, includes the Ptyxis-style color chooser

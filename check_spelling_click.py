@@ -1,4 +1,4 @@
-"""Spelling suggestions must follow the clicked character, not caret rounding."""
+"""Suggestions require an insertion position strictly inside a misspelled word."""
 from unittest.mock import Mock, patch
 
 from PyQt6.QtCore import QPoint, Qt
@@ -15,30 +15,42 @@ def run():
     editor.show()
     app.processEvents()
     assert editor.dictionary is not None
-    for text in ("hello qzxqzx tail", "café qzxqzx tail", "qzxqzx tail"):
+    cases = [(text, "qzxqzx") for text in (
+        "hello qzxqzx tail", "café qzxqzx tail", "qzxqzx tail",
+        "hello qzxqzx", "qzxqzx", "hello\nqzxqzx\ntail",
+        "hello\ncafé qzxqzx", "qzxqzx\ntail")]
+    # Control dictionary acceptance to exercise one- and two-letter words too.
+    cases += [(word, word) for word in ("q", "qz", "éq")]
+    clicks = 0
+    for text, word in cases:
         editor.setText(text)
-        editor.check_spelling()
-        record = next(value for value in editor.misspellings if value[2] == "qzxqzx")
-        start, end, _ = record
-        x = lambda pos: editor.SendScintilla(editor.SCI_POINTXFROMPOSITION, 0, pos)
-        y = editor.SendScintilla(editor.SCI_POINTYFROMPOSITION, 0, start) + editor.textHeight(0) // 2
-        # Both halves of the first and last character must work. Whitespace
-        # immediately outside either edge must leave the suggestions closed.
-        cases = [(x(start) - 1, False), (x(start) + 1, True),
-                 ((x(start) + x(start + 1)) // 2 + 1, True),
-                 (x(end - 1) + 1, True), (x(end) - 1, True),
-                 (x(end) + 1, False)]
-        with patch.object(editor, "correction_menu", return_value=Mock()) as menu:
-            for click_x, expected in cases:
-                menu.reset_mock()
-                QTest.mouseClick(editor.viewport(), Qt.MouseButton.LeftButton,
-                                 Qt.KeyboardModifier.NoModifier, QPoint(click_x, y))
-                assert menu.called == expected, (text, click_x, expected)
-                if expected:
-                    assert menu.call_args.args[0] == record
+        with patch.object(editor.dictionary, "check", side_effect=lambda value: value != word):
+            editor.check_spelling()
+            record = next(value for value in editor.misspellings if value[2] == word)
+            start, end, _ = record
+            # Every valid insertion boundary, including multibyte letters.
+            positions = [start + len(word[:i].encode("utf-8")) for i in range(len(word) + 1)]
+            with patch.object(editor, "correction_menu", return_value=Mock()) as menu:
+                for position in positions:
+                    x = editor.SendScintilla(editor.SCI_POINTXFROMPOSITION, 0, position)
+                    y = editor.SendScintilla(editor.SCI_POINTYFROMPOSITION, 0, position) + editor.textHeight(editor.lineIndexFromPosition(position)[0]) // 2
+                    # Sample both sides of the insertion point, including pixels
+                    # inside the first/last glyph that round to an outer boundary.
+                    for click_x in ((x, x + 1) if editor.lineIndexFromPosition(position)[1] == 0 else (x - 1, x, x + 1)):
+                        menu.reset_mock()
+                        QTest.mouseClick(editor.viewport(), Qt.MouseButton.LeftButton,
+                                         Qt.KeyboardModifier.NoModifier, QPoint(click_x, y))
+                        caret = editor.SendScintilla(editor.SCI_GETCURRENTPOS)
+                        assert caret == position, (text, position, click_x, caret)
+                        assert menu.called == (start < position < end), (text, position, menu.called)
+                        assert not editor.hasSelectedText()
+                        assert editor.text() == text
+                        if menu.called:
+                            assert menu.call_args.args[0] == record
+                        clicks += 1
     editor.spell_timer.stop()
     editor.close()
-    print("PASS: suggestions require clicks inside word characters, including both edge characters and Unicode prefixes")
+    print(f"PASS: {clicks} real clicks preserve caret placement and require strict word interiors, including short words, Unicode and line/document boundaries")
 
 
 if __name__ == "__main__":
